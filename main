@@ -1,0 +1,58 @@
+import numpy as np
+import generation
+import action
+import test_incorrect
+
+
+def main():
+    print('Model of Diffusion limited aggregation')
+    is_want = True
+    while is_want:
+        print('Чтобы сгенерировать новую модель, введите 1')
+        print('Чтобы выйти, нажмите 2')
+        choice = int(input('Сделайте выбор: '))
+        if choice == 1:
+            porosity = int(input('Введите пористость объекта(%): '))
+            test_incorrect.test_porosity(porosity)
+
+            size_of_field = int(input('Введите размер стороны поля: '))
+            test_incorrect.test_main(size_of_field)
+
+            part_number = int(input('Ввод количества частиц: '))
+            test_incorrect.test_particles(part_number)
+
+            # а нужно ли обработать вообще некорректный инпут типа текста? спросить про try\expect
+            cluster = [1]  # отсюда будем брать сумму частиц в кластере
+            clustered_values = []  # тут координаты частиц в кластере
+            field = generation.initialize_field(size_of_field)
+            field = generation.generate_particle(field, size_of_field, part_number)
+            field = generation.create_cluster(field, size_of_field, clustered_values)
+            print(clustered_values)  # до этого места все ок
+            # c полученным полем и будем работать
+            program_field = np.copy(field)
+            program_porosity = action.find_program_porosity(program_field)
+
+            while program_porosity > porosity:
+
+                field = action.move_walkers(field, size_of_field, clustered_values)
+                # на вход поле, его размер и список использованных координат
+                # на выход поле с передвинутыми частицами
+                field = action.adhere(field, clustered_values, cluster)
+
+                if not action.count_active_walkers(field, cluster, part_number):
+                    # на вход поле, список с единичками, сложив которые получим размер кластера, кол-во частиц
+                    num_walkers = action.count_num_walkers(field, cluster, part_number)
+                    field = action.add_walkers(field, num_walkers, size_of_field)
+                program_porosity = int(action.find_program_porosity(field))
+
+
+        elif choice == 2:
+            print('Осуществляется запланированный выход из программы')
+            is_want = False
+        else:
+
+            print('Выйди и зайди нормально')
+
+
+if __name__ == '__main__':
+    main()
