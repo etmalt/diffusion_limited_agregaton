@@ -1,0 +1,21 @@
+def test_main(variable):
+    if type(variable) != int or variable < 1:
+        while type(variable) != int or variable < 1:
+            print('Вы ввели некорректное значение!')
+            variable = int(input('Пожалуйста, введите целое число, большее 0: '))
+
+
+def test_particles(variable):
+    if type(variable) != int or variable < 0:
+        while type(variable) != int or variable < 0:
+            print('Вы ввели некорректное значение!')
+            variable = int(input('Пожалуйста, введите целое число: '))
+
+
+def test_porosity(variable):
+    if variable not in range(1, 101):
+        while variable not in range(1, 101):
+            print('Вы ввели некорректное значение')
+            variable = int(input('Введите целое значение от 1 до 100: '))
+
+
