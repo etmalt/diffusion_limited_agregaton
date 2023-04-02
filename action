@@ -1,0 +1,105 @@
+import numpy as np
+import random
+import test_incorrect
+import flag_function
+
+
+# какая пористость в данный момент
+def find_program_porosity(field):
+    program_porosity = ((len(field) ** 2 - np.sum(field)) / len(field) ** 2) * 100
+    print(f'Текущая пористость = {program_porosity}')
+    return program_porosity
+
+
+# есть ли частицы вне кластера?
+def count_active_walkers(field, cluster, part_number):
+    active_walkers = np.sum(field) - sum(cluster)
+    if active_walkers == part_number:
+        return True
+    else:
+        return False
+
+
+# сколько не достает частиц
+def count_num_walkers(field, cluster, part_number):
+    active_walkers = np.sum(field) - sum(cluster)
+    num_walkers = part_number - active_walkers
+    print(f'Не хватает {num_walkers} частиц')
+    return num_walkers
+
+
+# добавление недостающих частиц
+def add_walkers(field, num_walkers, size_of_field):
+    counter = 0
+    while counter != num_walkers:
+        i = random.randint(1, size_of_field - 1)
+        test_incorrect.test_particles(i)
+        j = random.randint(1, size_of_field - 1)
+        test_incorrect.test_particles(j)
+        if field[i, j] != 1:
+            field[i, j] = 1
+            counter += 1
+    print('Поле с добавленными частицами')
+    print(field)
+    return field
+
+
+# движение частиц
+# ужасная отвратительная идея, но чето лучше я не придумала
+# АХАХАХАХАХА она подгрузила numpy, а потом все равно написала цикл (никогда так не делай)
+def move_walkers(field, size_of_field, clustered_values):
+    for i in range(size_of_field):
+        for j in range(size_of_field):
+            # ловим единицу, которая не в кластере
+            if field[i, j] == 1 and (i, j) not in clustered_values:
+                # проверяем, не стоят ли частицы в клеточках, откуда потенциально могут сбежать за край поля
+                if not (j in range(1, size_of_field - 1) and i in range(1, size_of_field - 1)):
+                    # такие есть. Жаль. Поднимаем флаг, это отдельный случай
+                    (di, dj) = flag_function.move_flag_values(field, i, j)
+                    while field[i, j] == 1:
+
+                        if field[i + di, j + dj] != 1 and field[i + di, j + dj] != 1:
+                            field[i + di, j + dj] = 1
+                            field[i, j] = 0
+                # таких нет, двигаем спокойно частицы
+                else:
+                    while field[i, j] == 1:
+                        di = random.randint(-1, 1)
+                        dj = random.randint(-1, 1)
+
+                        if field[i + di, j + dj] != 1 and field[i + di, j + dj] != 1:
+                            field[i + di, j + dj] = 1
+                            field[i, j] = 0
+
+    print(f'Поле с передвинутыми частицами')
+    print(field)
+    # print(clustered_values)
+    return field
+
+
+# слипание с кластером
+# идея - если любая из соседок в списке кластера, эту тоже добавляем в кластер
+# рассматриваем окошки по 9 и смотрим, не попала ли какая-то координата в расстрельный список
+# на вход поле с передвинутыми частицами
+def adhere(field, clustered_values, cluster):
+    # если все таки попадем в кластер, поднимем флаг
+    flag = 0
+    new_field = np.copy(field)
+    new_field = np.pad(new_field, pad_width=1, mode='constant',
+                       constant_values=0)  # окружила нулями, чтоб не проверять границ
+    for i in range(len(field)):
+        for j in range(len(field)):
+            if field[i, j] == 1 and (i, j) not in clustered_values:
+
+                for x in range(i - 1, i + 2):
+                    for y in range(j - 1, j + 2):
+                        if (x, y) in clustered_values:
+                            flag = 1
+                if flag:
+                    clustered_values.append((i, j))
+                    cluster.append(1)
+
+    print('Поле со слипшимися частицами')
+    print(field)
+    # print(clustered_values)
+    return field
