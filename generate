@@ -1,0 +1,41 @@
+import numpy as np
+import random
+import test_incorrect
+
+
+# генерируем поле из нулей с заданным размером
+def initialize_field(size_of_field):
+    field = np.zeros((size_of_field, size_of_field))
+    return field
+
+
+# хочу получить поле с X частиц на рандомных координатах
+def generate_particle(field, size_of_field, part_number):  # shape_of_particle
+    # эта штука будет проверять, не превысили ли мы количество частиц
+    counter = 0
+    while counter < part_number:
+        i = random.randint(1, size_of_field - 1)
+        test_incorrect.test_particles(i)
+        j = random.randint(1, size_of_field - 1)
+        test_incorrect.test_particles(j)
+        if field[i, j] != 1:
+            field[i, j] = 1
+            counter += 1
+
+    print('Поле со сгенерированными частицами')
+    print(field)
+    return field
+
+
+# почему-то ломается на количестве частиц больше 90. ctrl D не помогает
+
+
+#
+def create_cluster(field, size_of_field, clustered_values):
+    # пусть наш кластер начинается примерно с середины поля
+    field[round(size_of_field / 2), round(size_of_field / 2)] = 1
+    # список, в котором хранятся координаты поля, принадлежащие кластеру
+    clustered_values.append((round(size_of_field / 2), round(size_of_field / 2)))
+    print('Поле с кластером и частицами')
+    print(field)
+    return field
